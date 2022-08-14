@@ -1,81 +1,66 @@
-from ast import While
-import speech_recognition as sr
-import gtts
-from playsound import playsound
-import os
+from math import remainder
+from click import command
+from speech_recognition_engine import SpeechTextEngine
+import config
+from notion import NotionClient
+from datetime import datetime
 import time
 
-r = sr.Recognizer()
+notion_integration_token = config.NOTION_INTEGRATION_TOKEN
+notion_database_id = config.NOTION_DATABASE_ID
 
-
-class SpeechTextEngine:
-
-    def __init__(self) -> None:
-        self.ACTIVATION_COMMAND = [
-            "hey jarvis", "hi jarvis", "are you there jarvis", "jarvis",
-            "turn on", "are you there"
-        ]
-
-    def get_audio(self):
-        with sr.Microphone() as src:
-            print("Say...........")
-            audio = r.listen(src, phrase_time_limit=5)
-            print("audio recognized")
-
-        return audio
-
-    def audio_to_text(self, audio):
-        text = ""
-
-        try:
-            text = r.recognize_google(audio).lower()
-            print(f"\nrecognized text :- {text}")
-
-        except sr.UnknownValueError:
-            print("Could not understand audio")
-        except sr.RequestError:
-            print("request error")
-
-        return text
-
-    def speech_recognition(self):
-        audio = self.get_audio()
-        text = self.audio_to_text(audio=audio)
-
-        return text
-
-    def wakeup(self):
-        if self.speech_recognition() in self.ACTIVATION_COMMAND:
-            return True
-        return False
-
-    def speak(self, text):
-        try:
-            tts = gtts.gTTS(text)
-            temp = "./temp.mp3"
-            tts.save(temp)
-            playsound(temp)
-            os.remove(temp)
-        except AssertionError:
-            print("could not play sound")
-
+sr = SpeechTextEngine()
+notionClient = NotionClient(token=notion_integration_token,
+                            database_id=notion_database_id)
 
 if __name__ == "__main__":
 
-    spr = SpeechTextEngine()
-
+    remainder = 5
+    count = 0
     while True:
-        if spr.wakeup():
-            print("Activate")
-            spr.speak("Activating")
-            spr.speak("listening sir")
-            time.sleep(1.5)
+        count = 0
+        if sr.wakeup():
+            sr.speak("listening sir....")
+            time.sleep(0.5)
             while True:
-                command = spr.speech_recognition()
+                if count == remainder:
+                    sr.speak("you didn't said anything for a while sir")
+                    time.sleep(0.5)
 
+                command = sr.speech_recognition()
                 if "deactivate" in command:
                     print("Deactivate!")
-                    spr.speak("Deactivating")
+                    sr.speak("Deactivating")
                     break
-                else:
-                    spr.speak("you said :- " + command)
+
+                if "note" in command or "todo" in command:
+                    sr.speak("Tell me sir")
+                    note = sr.speech_recognition()
+
+                    if note == "":
+                        sr.speak("you didn't said anything")
+                        continue
+                    else:
+                        sr.speak('your todo is ' + note)
+                        sr.speak(" should i store?")
+
+                        command = sr.speech_recognition()
+                        if "no" in command:
+                            sr.speak("Ok sir")
+
+                    time_now = datetime.now().astimezone().isoformat()
+                    status = "Active"
+
+                    res = notionClient.create_page(desc=note,
+                                                   date=time_now,
+                                                   status=status)
+                    if res.status_code == 200:
+                        print("created successfully....!!!")
+                        sr.speak("new note created")
+                    else:
+                        print(f"error :-> status code = {res.status_code}")
+                        sr.speak("can't store the note")
+
+                if "exit" in command:
+                    sr.speak("program terminating")
+                    exit()
