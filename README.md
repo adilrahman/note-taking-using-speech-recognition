@@ -31,7 +31,7 @@ It's a note taking program using speech recognition and storing notes in Notion
 - You can follow this [steps](https://developers.notion.com/docs/getting-started) to create ``Notion Internal Integration Token``, ``Notion Database and Notion Database Id``
   
 - After creating notion database, create 3 columns and name as `Description`, `Date` and `Status`
-![table]()
+![table](./Images/table.png)
 
 ### Columns Type
 1. Description - `Title`
