@@ -10,6 +10,8 @@ r = sr.Recognizer()
 class SpeechTextEngine:
 
     def __init__(self) -> None:
+
+        ## Wake up commands
         self.ACTIVATION_COMMAND = [
             "hey friday", "hi friday", "are you there friday", "friday",
             "turn on", "are you there"
