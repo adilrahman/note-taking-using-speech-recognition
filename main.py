@@ -28,12 +28,12 @@ if __name__ == "__main__":
                     time.sleep(0.5)
 
                 command = sr.speech_recognition()
-                if "deactivate" in command:
+                if "deactivate" in command: # for deactivate service temporarly
                     print("Deactivate!")
                     sr.speak("Deactivating")
                     break
 
-                if "note" in command or "todo" in command:
+                if "note" in command or "todo" in command: # for createing notes
                     sr.speak("Tell me sir")
                     note = sr.speech_recognition()
 
@@ -47,6 +47,7 @@ if __name__ == "__main__":
                         command = sr.speech_recognition()
                         if "no" in command:
                             sr.speak("Ok sir")
+                            continue
 
                     time_now = datetime.now().astimezone().isoformat()
                     status = "Active"
@@ -61,6 +62,6 @@ if __name__ == "__main__":
                         print(f"error :-> status code = {res.status_code}")
                         sr.speak("can't store the note")
 
-                if "exit" in command:
+                if "exit" in command: # for exiting program
                     sr.speak("program terminating")
                     exit()
